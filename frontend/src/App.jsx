@@ -9,6 +9,7 @@ function App() {
   const [user, setUser] = useState(
     JSON.parse(localStorage.getItem("user") || "null")
   );
+  const [isRegister, setIsRegister] = useState(true);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,24 +28,25 @@ function App() {
   });
 
   const register = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    try {
-      const res = await axios.post(`${API}/auth/register`, {
-        email,
-        password
-      });
+  try {
+    const res = await axios.post(`${API}/auth/register`, {
+      name: e.target.name.value,
+      email,
+      password
+    });
 
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("user", JSON.stringify(res.data.user));
+    alert("Registration successful!");
 
-      setToken(res.data.token);
-      setUser(res.data.user);
+    setIsRegister(false);
+    setEmail("");
+    setPassword("");
 
-    } catch {
-      alert("Invalid login details");
-    }
-  };
+  } catch (error) {
+    alert(error.response?.data?.message || "Registration failed");
+  }
+};
   const login = async (e) => {
     e.preventDefault();
 
@@ -121,63 +123,60 @@ function App() {
     setTasks([]);
   };
 
-
-  if (!token) {
-    return (
-      <div className="Register">
+if (!token || !user) {
+  return (
+    <div className="login">
+      <form onSubmit={isRegister ? register : login}>
         <h1>TaskFlow</h1>
-        <h2>Register</h2>
 
-        <form onSubmit={async (e) => {
-          e.preventDefault();
-          try {
-            await axios.post(`${API}/auth/register`, {
-              name: e.target.name.value,
-              email: e.target.email.value,
-              password: e.target.password.value
-            });
-            alert("Registered successfully. Please login.");
-          } catch {
-            alert("Registration failed");
-          }
-        }}>
-          <input placeholder="Name" name="name" required />
-          <input placeholder="Email" type="email" name="email" required />
-          <input placeholder="Password" type="password" name="password" required />
-          <button>Register</button>
-        </form>
-      </div>
-    );
-  }
+        <h2>{isRegister ? "Create Account" : "Login"}</h2>
 
-  if (!user) {
-    return (
-      <div className="login">
-        <form onSubmit={login}>
-          <h1>TaskFlow</h1>
-          <h2>Login</h2>
-
+        {isRegister && (
           <input
-            placeholder="Email"
-            type="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
+            placeholder="Name"
+            name="name"
             required
           />
+        )}
 
-          <input
-            placeholder="Password"
-            type="password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            required
-          />
+        <input
+          placeholder="Email"
+          name="email"
+          type="email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          required
+        />
 
-          <button>Login</button>
-        </form>
-      </div>
-    );
-  }
+        <input
+          placeholder="Password"
+          name="password"
+          type="password"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          required
+        />
+
+        <button type="submit">
+          {isRegister ? "Register" : "Login"}
+        </button>
+
+        <p>
+          {isRegister
+            ? "Already have an account?"
+            : "Don't have an account?"}
+        </p>
+
+        <button
+          type="button"
+          onClick={() => setIsRegister(!isRegister)}
+        >
+          {isRegister ? "Go to Login" : "Go to Register"}
+        </button>
+      </form>
+    </div>
+  );
+}
 
   const canManage = ["Admin", "Manager"].includes(user?.role);
 

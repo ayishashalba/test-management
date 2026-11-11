@@ -5,30 +5,43 @@ const User = require("../models/User");
 const auth = require("../middleware/auth");
 
 const router = express.Router();
-router.post("/register",auth, async (req, res) => {
-    try {
-        const { name, email, password } = req.body;
+router.post("/register", async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
 
-        const exists = await User.findOne({ email });
-
-        if (exists) {
-            return res.status(400).json({ message: "User already exists" });
-        }
-
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        const user = await User.create({
-            name,
-            email,
-            password: hashedPassword,
-            role: "User"
-        });
-
-        res.status(201).json({ message: "Registered successfully" });
-
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+    if (!name || !email || !password) {
+      return res.status(400).json({
+        message: "All fields are required"
+      });
     }
+
+    const exists = await User.findOne({ email });
+
+    if (exists) {
+      return res.status(400).json({
+        message: "User already exists"
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await User.create({
+      name,
+      email,
+      password: hashedPassword,
+      role: "User"
+    });
+
+    res.status(201).json({
+      message: "Registered successfully"
+    });
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: error.message
+    });
+  }
 });
 
 router.post("/login", async (req, res) => {
